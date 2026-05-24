@@ -1,0 +1,4 @@
+# Crazy8s Modern - Requirements
+# Python 3.12 + Kivy 2.3+
+
+kivy>=2.3.0

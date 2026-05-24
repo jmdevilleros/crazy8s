@@ -543,7 +543,7 @@ class Crazy8sApp(App):
                 separator_color=[0.2, 0.4, 0.2, 1],
                 title_color=[0.5, 0.9, 0.5, 1],
                 separator_height='2dp',
-                background_color=[0, 0.1, 0, 0.2],
+                background_color=[0, 0.9, 0.2, 0.92],
                 on_dismiss=dismiss_function
             )
 

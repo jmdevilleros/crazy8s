@@ -1,0 +1,242 @@
+# ----------------------------------------------------------------------
+# Kivy User Interface definition for Crazy8s game
+# ----------------------------------------------------------------------
+
+#:kivy 1.9.0
+
+#: import RiseInTransition kivy.uix.screenmanager.RiseInTransition
+
+#:set IMAGE_DIR './img/'
+#:set MARGIN 10
+#:set BACKGROUND_COLOR (0, 0.2, 0.1)
+#:set TABLE_COLOR (0, 0.5, 0)
+#:set BORDER_COLOR (0.2, 0.4, 0.2)
+#:set MSG_COLOR (1, 1, 0, 1)
+#:set STATUS_COLOR (0.5, 0.5, 0.5, 1)
+
+
+# ----------------------------------------------------------------------
+ScreenManager:
+    game_screen: game_screen
+    transition: RiseInTransition()
+    SplashScreen:
+    SetupScreen:
+    GameScreen:
+        id: game_screen
+
+# ----------------------------------------------------------------------
+<SplashScreen>:
+    name: 'SplashScreen'
+    Image:
+        source: IMAGE_DIR + 'splash_image.png'
+
+# ----------------------------------------------------------------------
+<SetupScreen>:
+    name: 'SetupScreen'
+    requested_players: nplayers.value
+    requested_humans: nhumans.value
+    requested_autoplay: autospeed.value
+    Frame:
+        padding: MARGIN * 2
+        spacing: MARGIN / 2
+        size_hint: 0.6, 0.6
+        Label:
+            size_hint: 0.5, 0.1
+            pos_hint: {'center_x':0.5, 'center_y':0.5}
+            text: 'CRAZY EIGHTS GAME'
+        Label:
+            size_hint: 0.5, 0.05
+            pos_hint: {'center_x':0.5, 'center_y':0.5}
+            halign: 'center'
+            text:
+                'Set your preferences and click "Start"'
+        Frame:
+            # Number of players
+            orientation: 'horizontal'
+            size_hint: 1, 0.25
+            Label:
+                size_hint: 0.4, 1
+                pos_hint: {'center_x':0.5, 'center_y':0.5}
+                text: 'Number of players'
+            FloatLayout:
+                size_hint: 0.6, 1
+                Slider:
+                    id: nplayers
+                    size_hint: 1, 0.8
+                    pos_hint: {'center_x':0.5, 'top':1}
+                    max: 10
+                    min: 1
+                    step: 1
+                    value: app.num_players
+                Label:
+                    size_hint: 1, 0.2
+                    pos_hint: {'top':0.3, 'center_x':0.5}
+                    font_size: 12
+                    text:
+                        str(nplayers.value) + \
+                        ' player' + ('s' if nplayers.value!=1 else '')
+        Frame:
+            # Number of humans
+            orientation: 'horizontal'
+            size_hint: 1, 0.25
+            Label:
+                size_hint: 0.4, 1
+                pos_hint: {'center_x':0.5, 'center_y':0.5}
+                text: 'Number of humans'
+            FloatLayout:
+                size_hint: 0.6, 1
+                Slider:
+                    id: nhumans
+                    size_hint: 1, 0.8
+                    pos_hint: {'center_x':0.5, 'top':1}
+                    max: nplayers.value
+                    min: 0
+                    step: 1
+                    value: app.num_humans
+                Label:
+                    size_hint: 1, 0.2
+                    pos_hint: {'top':0.3, 'center_x':0.5}
+                    font_size: 12
+                    text:
+                        str(int(nhumans.value)) + \
+                        ' human' + ('s' if nhumans.value!=1 else '')
+        Frame:
+            # Automatic play
+            orientation: 'horizontal'
+            size_hint: 1, 0.25
+            Label:
+                size_hint: 0.4, 1
+                pos_hint: {'center_x':0.5, 'center_y':0.5}
+                text: 'Autoplay speed'
+            FloatLayout:
+                size_hint: 0.6, 1
+                Slider:
+                    id: autospeed
+                    size_hint: 1, 0.8
+                    pos_hint: {'center_x':0.5, 'top':1}
+                    max: 10
+                    min: 0
+                    step: 0.5
+                    value: 0
+                Label:
+                    size_hint: 1, 0.2
+                    pos_hint: {'center_x':0.5, 'top':0.3}
+                    font_size: 12
+                    text:
+                        str(autospeed.value) + ' seconds'
+        Button:
+            size_hint: 0.5, 0.1
+            pos_hint: {'center_x':0.5, 'center_y':0.5}
+            text: 'Start!'
+            on_release:
+                app.root.current = 'GameScreen'
+
+# ----------------------------------------------------------------------
+<GameScreen>:
+    name: 'GameScreen'
+    player_zone: player_zone
+    draw_zone: draw_zone
+    discard_zone: discard_zone
+    message_zone: msg
+    play_turn_button: turn
+    pause_game_button: pause
+    on_enter: self.start_game()
+    Frame:
+        spacing: -MARGIN/2
+        Zone:
+            id: player_zone
+            size_hint: 1, 4
+            spacing: MARGIN
+            cols: 5
+            rows: 2
+        Zone:
+            id: draw_zone
+            size_hint: 1, 2
+            spacing: -650
+        Zone:
+            id: discard_zone
+            size_hint: 1, 2
+            spacing: -600
+        Zone:
+            id: message_zone
+            size_hint: 1, 1
+            Label:
+                id: msg
+                color: MSG_COLOR
+        Zone:
+            id: status_zone
+            size_hint: 1, 1
+            StatusLabel:
+                text:
+                    'Auto-play is ' + \
+                    (('On (' + str(app.auto_play_interval) + 's)') \
+                    if app.auto_play else 'Off')
+            StatusLabel:
+                text:
+                    'Waiting for game to start...' \
+                    if app.current_player is None else \
+                    'Turn ' + str(app.current_turn) + \
+                    ', ' + app.current_player.name
+        Zone:
+            id: control_zone
+            size_hint: 1, 1
+            padding: MARGIN * 1.5
+            spacing: MARGIN
+            Button:
+                text: 'New game'
+                on_release: app.root.current = 'SetupScreen'
+            Button:
+                text: 'Restart game'
+                on_release: root.start_game()
+            Button:
+                id: turn
+                text:
+                    'Next turn' if app.current_turn > 0 else 'Begin turns'
+                on_release: app.game_tick(root)
+            Button:
+                id: pause
+                text: 'Toggle auto-play'
+                on_release: app.toggle_auto_play()
+#            Button:
+#                text: 'Quit'
+#                on_release: app.stop()
+
+# ----------------------------------------------------------------------
+<Frame@BoxLayout>:
+    orientation: 'vertical'
+    pos_hint: {'center_x':0.5, 'center_y':0.5}
+    padding: MARGIN
+    spacing: MARGIN
+    canvas.before:
+        Color:
+            rgb: TABLE_COLOR
+        RoundedRectangle:
+            pos: (self.x + MARGIN/2, self.y + MARGIN/2)
+            size: (self.width - MARGIN, self.height - MARGIN)
+            source: IMAGE_DIR + 'table_background.jpg'
+        Color:
+            rgb: BORDER_COLOR
+        Line:
+            rounded_rectangle:
+                (self.x + MARGIN, self.y + MARGIN,
+                self.width - MARGIN * 2, self.height - MARGIN * 2,
+                MARGIN)
+
+# ----------------------------------------------------------------------
+<Zone@GridLayout>:
+    pos_hint: {'center_x':0.5, 'center_y':0.5}
+    padding: MARGIN * 2
+    rows: 1
+    canvas.before:
+        Color:
+            rgb: BORDER_COLOR
+        Line:
+            rounded_rectangle:
+                (self.x + MARGIN, self.y + MARGIN,
+                self.width - MARGIN * 2, self.height - MARGIN * 2,
+                MARGIN)
+
+# ----------------------------------------------------------------------
+<StatusLabel@Label>:
+    font_size: 14
+    color: STATUS_COLOR
